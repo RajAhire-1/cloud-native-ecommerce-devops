@@ -26,8 +26,8 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      # Step 4: Build, tag, and push Docker image
-      - name: Build, tag and push Docker image to ECR
+      # Step 4: Build & push Product Service
+      - name: Build and push Product Service
         env:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -35,9 +35,19 @@ jobs:
           IMAGE_TAG: v1
         run: |
           ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
-
-          echo "ECR URI: $ECR_URI"
-
           docker build -t $IMAGE_NAME:$IMAGE_TAG ./product-service
           docker tag $IMAGE_NAME:$IMAGE_TAG $ECR_URI/$IMAGE_NAME:$IMAGE_TAG
           docker push $ECR_URI/$IMAGE_NAME:$IMAGE_TAG
+
+      # Step 5: Build & push Order Service
+      - name: Build and push Order Service
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          IMAGE_NAME: order-service
+          IMAGE_TAG: v1
+        run: |
+          ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+          docker build -t $IMAGE_NAME:$IMAGE_TAG ./order-service
+          docker tag $IMAGE_NAME:$IMAGE_TAG $ECR_URI/$IMAGE_NAME:$IMAGE_TAG
+          docker pus
