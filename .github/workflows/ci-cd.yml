@@ -50,4 +50,6 @@ jobs:
           ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
           docker build -t $IMAGE_NAME:$IMAGE_TAG ./order-service
           docker tag $IMAGE_NAME:$IMAGE_TAG $ECR_URI/$IMAGE_NAME:$IMAGE_TAG
-          docker pus
+          docker push $ECR_URI/$IMAGE_NAME:$IMAGE_TAG
+
+
