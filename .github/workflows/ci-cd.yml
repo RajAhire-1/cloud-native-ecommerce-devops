@@ -1,4 +1,4 @@
-name: CI-CD to AWS ECR
+name: CI-CD Pipeline - Build & Push to ECR
 
 on:
   push:
@@ -10,9 +10,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      # Step 1: Checkout code
+      - name: Checkout source code
         uses: actions/checkout@v4
 
+      # Step 2: Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -20,17 +22,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      # Step 3: Login to Amazon ECR
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push Product Service
+      # Step 4: Build, tag, and push Docker image
+      - name: Build, tag and push Docker image to ECR
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          IMAGE_NAME: product-service
+          IMAGE_TAG: v1
         run: |
-          docker build -t product-service:v1 ./product-service
-          docker tag product-service:v1 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/product-service:v1
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/product-service:v1
+          ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
 
-      - name: Build and push Order Service
-        run: |
-          docker build -t order-service:v1 ./order-service
-          docker tag order-service:v1 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/order-service:v1
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/order-service:v1
+          echo "ECR URI: $ECR_URI"
+
+          docker build -t $IMAGE_NAME:$IMAGE_TAG ./product-service
+          docker tag $IMAGE_NAME:$IMAGE_TAG $ECR_URI/$IMAGE_NAME:$IMAGE_TAG
+          docker push $ECR_URI/$IMAGE_NAME:$IMAGE_TAG
